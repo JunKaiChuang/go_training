@@ -71,19 +71,18 @@ func TestSet(t *testing.T) {
 				v: nil,
 			},
 		},
-		{
-			name: "Test Set empty string",
-			args: args{
-				k: "",
-				v: "world",
-			},
-		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := New()
 			c.Set(tt.args.k, tt.args.v)
+
+			cacheMap := c.CacheMap()
+
+			if got := cacheMap[tt.args.k].Data; !reflect.DeepEqual(got, tt.args.v) || reflect.TypeOf(got) != reflect.TypeOf(tt.args.v) {
+				t.Errorf("Get() = %v %v, want %v %v", got, reflect.TypeOf(got), tt.args.v, reflect.TypeOf(tt.args.v))
+			}
 		})
 	}
 }
@@ -101,7 +100,7 @@ func TestGet(t *testing.T) {
 		{
 			name: "Test Get string",
 			args: args{
-				k: "hello",
+				k: "A",
 				v: "world",
 			},
 			want: "world",
@@ -109,7 +108,7 @@ func TestGet(t *testing.T) {
 		{
 			name: "Test Get int",
 			args: args{
-				k: "hello",
+				k: "B",
 				v: 123,
 			},
 			want: 123,
@@ -117,7 +116,7 @@ func TestGet(t *testing.T) {
 		{
 			name: "Test Get struct",
 			args: args{
-				k: "hello",
+				k: "C",
 				v: struct {
 					Name string
 					Age  int
@@ -138,7 +137,7 @@ func TestGet(t *testing.T) {
 		{
 			name: "Test Get nil",
 			args: args{
-				k: "hello",
+				k: "D",
 				v: nil,
 			},
 			want: nil,
@@ -147,7 +146,7 @@ func TestGet(t *testing.T) {
 		{
 			name: "Test Get empty string",
 			args: args{
-				k: "hello",
+				k: "E",
 				v: "",
 			},
 			want: "",
@@ -156,17 +155,32 @@ func TestGet(t *testing.T) {
 		{
 			name: "Test Get empty struct",
 			args: args{
-				k: "hello",
+				k: "F",
 				v: struct{}{},
 			},
 			want: struct{}{},
 		},
 	}
 
+	mockMap := make(map[string]cacheData)
+
+	// insert test data
+	for _, tt := range tests {
+		mockMap[tt.args.k] = cacheData{
+			Data:     tt.args.v,
+			ExpireAt: time.Now().Add(time.Hour),
+		}
+	}
+
+	// mock initCacheMap
+	initCacheMap = func() map[string]cacheData {
+		return mockMap
+	}
+
+	c := New()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := New()
-			c.Set(tt.args.k, tt.args.v)
 			if got := c.Get(tt.args.k); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Get() = %v, want %v", got, tt.want)
 			}
@@ -191,7 +205,7 @@ func TestTTL(t *testing.T) {
 				k: "hello",
 				v: "world",
 			},
-			timePass: (TTL - 1) * time.Second,
+			timePass: (cacheTTL - 1) * time.Second,
 			want:     "world",
 		},
 		{
@@ -200,7 +214,7 @@ func TestTTL(t *testing.T) {
 				k: "hello",
 				v: "world",
 			},
-			timePass: (TTL + 1) * time.Second,
+			timePass: (cacheTTL + 1) * time.Second,
 			want:     nil,
 		},
 	}

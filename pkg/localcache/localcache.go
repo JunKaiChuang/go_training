@@ -4,13 +4,17 @@ package localcache
 import "time"
 
 const (
-	// TTL is the default time to live(seconds) for a cache entry
-	TTL = 30
+	// cacheTTL is the default time to live(seconds) for a cache entry
+	cacheTTL = 30
 )
 
 var (
 	// function variable of time.Now
 	timeNow = time.Now
+	// function variable of make cache map
+	initCacheMap = func() map[string]cacheData {
+		return make(map[string]cacheData)
+	}
 )
 
 type cacheData struct {
@@ -25,7 +29,7 @@ type cache struct {
 // Returns a new Cache instance
 func New() Cache {
 	return &cache{
-		cacheMap: make(map[string]cacheData),
+		cacheMap: initCacheMap(),
 	}
 }
 
@@ -54,6 +58,11 @@ func (c cache) Set(k string, v any) {
 	}
 }
 
+// Get the cache map
+func (c cache) CacheMap() map[string]cacheData {
+	return c.cacheMap
+}
+
 func expireAt() time.Time {
-	return timeNow().Add(TTL * time.Second)
+	return timeNow().Add(cacheTTL * time.Second)
 }
