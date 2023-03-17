@@ -75,10 +75,10 @@ func TestSet(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := New()
+			c := New().(*cache)
 			c.Set(tt.args.k, tt.args.v)
 
-			cacheMap := c.CacheMap()
+			cacheMap := c.cacheMap
 
 			if got := cacheMap[tt.args.k].Data; !reflect.DeepEqual(got, tt.args.v) || reflect.TypeOf(got) != reflect.TypeOf(tt.args.v) {
 				t.Errorf("Get() = %v %v, want %v %v", got, reflect.TypeOf(got), tt.args.v, reflect.TypeOf(tt.args.v))
@@ -172,12 +172,8 @@ func TestGet(t *testing.T) {
 		}
 	}
 
-	// mock initCacheMap
-	initCacheMap = func() map[string]cacheData {
-		return mockMap
-	}
-
-	c := New()
+	c := New().(*cache)
+	c.cacheMap = mockMap
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

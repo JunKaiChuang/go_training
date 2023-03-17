@@ -11,10 +11,6 @@ const (
 var (
 	// function variable of time.Now
 	timeNow = time.Now
-	// function variable of make cache map
-	initCacheMap = func() map[string]cacheData {
-		return make(map[string]cacheData)
-	}
 )
 
 type cacheData struct {
@@ -29,7 +25,7 @@ type cache struct {
 // Returns a new Cache instance
 func New() Cache {
 	return &cache{
-		cacheMap: initCacheMap(),
+		cacheMap: make(map[string]cacheData),
 	}
 }
 
@@ -56,11 +52,6 @@ func (c cache) Set(k string, v any) {
 		Data:     v,
 		ExpireAt: expireAt(),
 	}
-}
-
-// Get the cache map
-func (c cache) CacheMap() map[string]cacheData {
-	return c.cacheMap
 }
 
 func expireAt() time.Time {

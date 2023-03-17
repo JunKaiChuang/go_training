@@ -5,6 +5,4 @@ type Cache interface {
 	Get(k string) any
 	// Set the v(data) to the cache with k(key)
 	Set(k string, v any)
-	// Get the cache map
-	CacheMap() map[string]cacheData
 }
